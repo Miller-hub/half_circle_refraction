@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>半圓透鏡折射 (簡單版) | 尤達數理</title>
+    <title>半圓透鏡折射 (進階版) | 尤達數理</title>
     <style>
         :root {
             --header-bg: #2d3748;
@@ -268,10 +268,18 @@
 
                     <div style="position: relative;">
                         <label>入射光角度</label>
-                        <div id="hintBubble" class="hint-tooltip">拖曳這裡改變入射角！</div>
+                        <div id="hintBubble" class="hint-tooltip">拖曳這裡改變角度！</div>
                         <input type="range" id="angleSlider" min="-80" max="80" value="0" step="1">
                         <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
                             <span id="angleDisplay">0</span>°
+                        </div>
+                    </div>
+
+                    <div style="position: relative;">
+                        <label>入射光偏移 (Offset)</label>
+                        <input type="range" id="offsetSlider" min="-180" max="180" value="0" step="1">
+                        <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
+                            <span id="offsetDisplay">0</span> px
                         </div>
                     </div>
 
@@ -309,10 +317,6 @@
                         <tr>
                             <td>臨界角 (θc)</td>
                             <td id="valCritical">--</td>
-                        </tr>
-                        <tr>
-                            <td>折射角 (θr)</td>
-                            <td id="valRefract">--</td>
                         </tr>
                     </table>
                     
@@ -365,9 +369,10 @@
 
         let state = {
             n: 1.50,
-            angle: 0, // Incident Ray Angle from Vertical
+            angle: 0,
+            offset: 0,
             showNormal: true,
-            direction: 'glass_to_air' // 'glass_to_air' or 'air_to_glass'
+            direction: 'glass_to_air'
         };
 
         let ghostState = null;
@@ -383,84 +388,238 @@
         // Math
         function toRad(deg) { return deg * Math.PI / 180; }
         function toDeg(rad) { return rad * 180 / Math.PI; }
+        function normalize(v) { const len = Math.sqrt(v.x*v.x + v.y*v.y); return {x:v.x/len, y:v.y/len}; }
 
-        // --- Core Physics ---
-        function calcSimulation(s) {
-            // Configuration based on direction
-            // glass_to_air: Light from BOTTOM (n=s.n) -> TOP (n=1)
-            // air_to_glass: Light from TOP (n=1) -> BOTTOM (n=s.n)
-            
-            const fromGlass = s.direction === 'glass_to_air';
-            
-            const n1 = fromGlass ? s.n : 1.0;
-            const n2 = fromGlass ? 1.0 : s.n;
-            
-            // Incident Angle
-            const theta_i = Math.abs(toRad(s.angle));
-            
-            // Critical Angle exists only if n1 > n2 (Glass to Air)
-            let criticalAngle = null;
-            if (n1 > n2) {
-                criticalAngle = Math.asin(n2 / n1);
+        // --- Vector Ray Tracing Core ---
+        function refract(I, N, n1, n2) {
+            const r = n1 / n2;
+            // Ensure normal faces incident ray
+            let calcN = N;
+            if (I.x * N.x + I.y * N.y > 0) {
+                calcN = { x: -N.x, y: -N.y };
             }
             
-            // Incident Vector (Source to Center)
-            const iRad = toRad(s.angle);
-            
-            const yDir = fromGlass ? -1 : 1; 
-            
-            const inVec = { 
-                x: -yDir * Math.sin(iRad), 
-                y: yDir * Math.cos(iRad) 
-            }; 
+            const c = -(I.x * calcN.x + I.y * calcN.y);
+            const disc = 1 - r * r * (1 - c * c);
+            if (disc < 0) return null; // TIR
 
-            let theta_r = 0;
-            let isTIR = false;
-            let outVec = {x:0, y:0};
-
-            // Snell's Law
-            // n1 sin(i) = n2 sin(r)
-            // sin(r) = (n1/n2) sin(i)
-            const sinR = (n1 / n2) * Math.sin(theta_i);
-
-            if (Math.abs(sinR) > 1.0) {
-                // TIR (Only possible in Glass -> Air)
-                isTIR = true;
-                outVec = { x: inVec.x, y: -inVec.y };
-            } else {
-                theta_r = Math.asin(sinR);
-                const signX = Math.sign(inVec.x) || 0;
-                
-                outVec = { 
-                    x: Math.sin(theta_r) * (signX === 0 ? 0 : signX), 
-                    y: Math.cos(theta_r) * Math.sign(inVec.y)
-                };
-                
-                // Angle 0 case
-                if(s.angle === 0) outVec = { x:0, y: Math.sign(inVec.y) };
-            }
-
-            return { 
-                theta_i, 
-                criticalAngle, 
-                isTIR, 
-                inVec, 
-                outVec, 
-                theta_r,
-                fromGlass
+            const scalar = r * c - Math.sqrt(disc);
+            return {
+                x: r * I.x + scalar * calcN.x,
+                y: r * I.y + scalar * calcN.y
             };
         }
 
-        // --- Arrow Drawing Helper ---
-        function drawArrowHead(ctx, x, y, angle, color) {
-            const size = 15;
+        function reflect(I, N) {
+            let calcN = N;
+            if (I.x * N.x + I.y * N.y > 0) {
+                calcN = { x: -N.x, y: -N.y };
+            }
+            const dot = I.x * calcN.x + I.y * calcN.y;
+            return {
+                x: I.x - 2 * dot * calcN.x,
+                y: I.y - 2 * dot * calcN.y
+            };
+        }
+
+        // Geometry: Bottom Semicircle
+        // Flat Face: y=0, x in [-R, R]
+        // Curved Face: x^2 + y^2 = R^2, y > 0
+        function intersectFlat(pos, dir) {
+            // Intersect with y=0
+            if (Math.abs(dir.y) < 1e-6) return null;
+            const t = -pos.y / dir.y;
+            if (t < 1e-4) return null; // Behind or self
+            const xHit = pos.x + t * dir.x;
+            if (Math.abs(xHit) > R) return null; // Outside segment
+            return { t: t, x: xHit, y: 0, nx: 0, ny: -1 }; // Normal Up
+        }
+
+        function intersectArc(pos, dir) {
+            // Solve |P+tD|^2 = R^2
+            // P.P + 2t P.D + t^2 = R^2
+            const A = 1;
+            const B = 2 * (pos.x * dir.x + pos.y * dir.y);
+            const C = (pos.x * pos.x + pos.y * pos.y) - R * R;
+            
+            const disc = B*B - 4*A*C;
+            if (disc < 0) return null;
+            
+            const t1 = (-B - Math.sqrt(disc)) / 2;
+            const t2 = (-B + Math.sqrt(disc)) / 2;
+            
+            let t = null;
+            if (t1 > 1e-4) t = t1;
+            else if (t2 > 1e-4) t = t2;
+            else return null;
+
+            const xHit = pos.x + t * dir.x;
+            const yHit = pos.y + t * dir.y;
+            
+            // Check y > 0 condition for bottom semicircle
+            if (yHit < 0) {
+                // Try other t if valid
+                if (t === t1 && t2 > 1e-4) {
+                    const yHit2 = pos.y + t2 * dir.y;
+                    if (yHit2 >= 0) {
+                        t = t2; 
+                        // update coords
+                    } else return null;
+                } else return null;
+            }
+            
+            // Recompute exact hit with chosen t
+            const hx = pos.x + t*dir.x;
+            const hy = pos.y + t*dir.y;
+            // Normal is radial (normalized hit pos)
+            const nLen = Math.sqrt(hx*hx + hy*hy);
+            return { t: t, x: hx, y: hy, nx: hx/nLen, ny: hy/nLen };
+        }
+
+        function traceRay(startPos, startDir, fromGlass) {
+            let path = [startPos];
+            let normals = [];
+            let rays = []; // Segments for drawing
+            let hasTIR = false;
+
+            let currPos = startPos;
+            let currDir = startDir;
+            
+            // Define refractive indices based on location
+            // Top (y<0): Air (1.0). Bottom (y>0): Glass (s.n).
+            // Logic: Ray starts outside. Enters block. Exits block.
+            
+            // Step 1: Intersection with Block Entry
+            // If fromGlass (Source Bottom), check IntersectArc
+            // If fromAir (Source Top), check IntersectFlat
+            
+            let hit1 = null;
+            let n1 = 1.0, n2 = 1.0;
+
+            if (fromGlass) {
+                hit1 = intersectArc(currPos, currDir);
+                n1 = 1.0; // Outside (Air)
+                n2 = state.n; // Inside (Glass)
+            } else {
+                hit1 = intersectFlat(currPos, currDir);
+                n1 = 1.0; // Outside
+                n2 = state.n; // Inside
+            }
+
+            if (!hit1) {
+                // Missed the block entirely
+                path.push({ x: currPos.x + currDir.x * 1000, y: currPos.y + currDir.y * 1000 });
+                return { path, normals, hasTIR };
+            }
+
+            // Hit 1 Found
+            path.push({x: hit1.x, y: hit1.y});
+            normals.push(hit1);
+            
+            // Refract Entry
+            let rVec1 = refract(currDir, {x: hit1.nx, y: hit1.ny}, n1, n2);
+            if (!rVec1) { return { path, normals, hasTIR: true }; } // Should not happen entering 1.0 -> n
+            
+            rVec1 = normalize(rVec1);
+            currDir = rVec1;
+            currPos = {x: hit1.x, y: hit1.y};
+
+            // Step 2: Traverse inside, find Exit
+            // If entered Arc, looks for Flat. If entered Flat, looks for Arc.
+            let hit2 = null;
+            if (fromGlass) {
+                hit2 = intersectFlat(currPos, currDir);
+            } else {
+                hit2 = intersectArc(currPos, currDir);
+            }
+
+            if (!hit2) {
+                // Lost inside? Should not happen for convexity
+                path.push({ x: currPos.x + currDir.x * 1000, y: currPos.y + currDir.y * 1000 });
+                return { path, normals, hasTIR };
+            }
+
+            path.push({x: hit2.x, y: hit2.y});
+            normals.push(hit2);
+
+            // Step 3: Refract Exit (n2 -> n1)
+            // Or TIR
+            let rVec2 = refract(currDir, {x: hit2.nx, y: hit2.ny}, n2, 1.0); // Exit to Air
+            
+            if (!rVec2) {
+                // TIR happened at 2nd interface
+                hasTIR = true;
+                // Reflect
+                let refDir = reflect(currDir, {x: hit2.nx, y: hit2.ny});
+                refDir = normalize(refDir);
+                
+                // TIR Path Extension (goes back inside glass)
+                // Just draw it leaving the block geometry for visualization?
+                // Or trace to next boundary?
+                // For "Semicircle Refraction", showing the reflected ray going down is enough.
+                // It will hit the arc again. Let's just draw it long.
+                path.push({ x: hit2.x + refDir.x * 400, y: hit2.y + refDir.y * 400 });
+            } else {
+                rVec2 = normalize(rVec2);
+                path.push({ x: hit2.x + rVec2.x * 400, y: hit2.y + rVec2.y * 400 });
+            }
+
+            return { path, normals, hasTIR };
+        }
+
+        function calcSimulation(s) {
+            const fromGlass = s.direction === 'glass_to_air';
+            const theta_i = toRad(s.angle);
+            const offset = s.offset; // Perpendicular offset
+            
+            // Calculate Source Position and Direction
+            // Base Direction (aiming at center):
+            // Glass->Air (Bottom source): Up-Right if angle>0.
+            // Vector: (sin(a), -cos(a))
+            // Air->Glass (Top source): Down-Right if angle>0.
+            // Vector: (sin(a), cos(a))
+            
+            const yDir = fromGlass ? -1 : 1;
+            const dir = { 
+                x: Math.sin(theta_i), 
+                y: yDir * Math.cos(theta_i) 
+            };
+            
+            // Offset Vector (Perpendicular to Dir)
+            // If Dir is (dx, dy), Perp is (-dy, dx)
+            const perp = { x: -dir.y, y: dir.x };
+            
+            // Source Start Point (Far away)
+            const dist = 400;
+            const origin = {
+                x: -dir.x * dist + perp.x * offset,
+                y: -dir.y * dist + perp.y * offset
+            };
+
+            const result = traceRay(origin, dir, fromGlass);
+            
+            // Critical Angle Info
+            let criticalAngle = null;
+            if (s.n > 1.0) criticalAngle = Math.asin(1.0 / s.n);
+
+            return {
+                path: result.path,
+                normals: result.normals,
+                hasTIR: result.hasTIR,
+                criticalAngle
+            };
+        }
+
+        function drawArrowHead(ctx, x, y, dx, dy, color) {
+            const angle = Math.atan2(dy, dx);
+            const size = 12;
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle);
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(-size, -size/3);
-            ctx.lineTo(-size, size/3);
+            ctx.lineTo(-size, -size/2.5);
+            ctx.lineTo(-size, size/2.5);
             ctx.closePath();
             ctx.fillStyle = color;
             ctx.fill();
@@ -471,16 +630,12 @@
             const opacity = isGhost ? 0.3 : 1.0;
             ctx.save();
             ctx.globalAlpha = opacity;
-
-            // 1. Draw Semicircle Block (BOTTOM Half)
-            ctx.save();
             ctx.translate(cx, cy);
-            
-            // Glass Block is ALWAYS on Bottom now
+
+            // Draw Block (Bottom Half)
             ctx.beginPath();
-            ctx.arc(0, 0, R, 0, Math.PI); // Bottom half arc (0 to PI)
-            ctx.closePath(); 
-            
+            ctx.arc(0, 0, R, 0, Math.PI); 
+            ctx.closePath();
             if (!isGhost) {
                 ctx.fillStyle = "rgba(49, 130, 206, 0.2)";
                 ctx.fill();
@@ -490,66 +645,58 @@
             if (isGhost) ctx.setLineDash([5, 5]);
             ctx.stroke();
             ctx.setLineDash([]);
-            
-            // Normal Line (Vertical)
-            if (state.showNormal && !isGhost) {
-                ctx.beginPath();
-                ctx.moveTo(0, -150);
-                ctx.lineTo(0, 150); 
-                ctx.strokeStyle = "#718096";
-                ctx.setLineDash([4, 4]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-            ctx.restore();
 
-            // 2. Draw Rays
-            const len = 400;
-            
-            // Incident Ray
-            // Start point = Center - inVec * len
-            const startX = cx - data.inVec.x * len;
-            const startY = cy - data.inVec.y * len;
-
-            const incidentColor = "#e53e3e";
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(cx, cy);
-            ctx.strokeStyle = incidentColor;
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // Incident Arrow
-            // Point towards center. Angle is atan2(dy, dx)
-            // vector from start to center is (data.inVec.x, data.inVec.y) normalized
-            // Position: Midpoint
-            if (!isPractice || isGhost) {
-                const midX = (startX + cx) / 2;
-                const midY = (startY + cy) / 2;
-                const angleInc = Math.atan2(data.inVec.y, data.inVec.x);
-                drawArrowHead(ctx, midX, midY, angleInc, incidentColor);
-            }
-
-            // Outgoing Ray
+            // Draw Path
             if (!(isPractice && !isGhost)) {
-                const endX = cx + data.outVec.x * len;
-                const endY = cy + data.outVec.y * len;
-                
-                // Color logic: Reflection=Red, Refraction=Blue
-                const outColor = data.isTIR ? "#e53e3e" : "#3182ce";
-                
                 ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(endX, endY);
-                ctx.strokeStyle = outColor;
+                if (data.path.length > 0) {
+                    const p0 = data.path[0];
+                    ctx.moveTo(p0.x, p0.y); // Path is already relative to center? No, local coords from traceRay
+                    // traceRay returns local coords relative to center (0,0) is origin
+                    // But traceRay logic used (0,0) as center of arc.
+                    // Which matches ctx.translate(cx, cy).
+                    
+                    for (let i = 1; i < data.path.length; i++) {
+                        ctx.lineTo(data.path[i].x, data.path[i].y);
+                    }
+                }
+                
+                const pathColor = data.hasTIR ? "#e53e3e" : "#3182ce";
+                ctx.strokeStyle = isGhost ? "#e53e3e" : pathColor;
+                ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Outgoing Arrow
-                // Points away from center. 
-                const midX_out = (cx + endX) / 2;
-                const midY_out = (cy + endY) / 2;
-                const angleOut = Math.atan2(data.outVec.y, data.outVec.x);
-                drawArrowHead(ctx, midX_out, midY_out, angleOut, outColor);
+                // Draw Arrows
+                for (let i = 0; i < data.path.length - 1; i++) {
+                    // Only draw on first (incident) and last (exit) segment
+                    // Or intermediate if offset makes it clear
+                    const p1 = data.path[i];
+                    const p2 = data.path[i+1];
+                    const mx = (p1.x + p2.x) / 2;
+                    const my = (p1.y + p2.y) / 2;
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    
+                    // Filter: Don't draw if segment too short (glitch)
+                    if (Math.abs(dx) + Math.abs(dy) > 10) {
+                        drawArrowHead(ctx, mx, my, dx, dy, isGhost ? "#e53e3e" : pathColor);
+                    }
+                }
+
+                // Draw Normals
+                if (state.showNormal && !isGhost) {
+                    ctx.strokeStyle = "#718096";
+                    ctx.setLineDash([4, 4]);
+                    ctx.lineWidth = 1;
+                    data.normals.forEach(n => {
+                        const len = 40;
+                        ctx.beginPath();
+                        ctx.moveTo(n.x - n.nx * len, n.y - n.ny * len);
+                        ctx.lineTo(n.x + n.nx * len, n.y + n.ny * len);
+                        ctx.stroke();
+                    });
+                    ctx.setLineDash([]);
+                }
             }
 
             ctx.restore();
@@ -566,7 +713,9 @@
             const activeData = calcSimulation(state);
             renderScene(activeData, false);
 
+            // Update UI Data
             document.getElementById('angleDisplay').innerText = state.angle;
+            document.getElementById('offsetDisplay').innerText = state.offset;
             document.getElementById('nDisplay').innerText = state.n.toFixed(2);
             
             const critEl = document.getElementById('valCritical');
@@ -575,27 +724,26 @@
             if (activeData.criticalAngle !== null) {
                 critEl.innerText = toDeg(activeData.criticalAngle).toFixed(1) + "°";
             } else {
-                critEl.innerText = "N/A";
+                critEl.innerText = "無 (N/A)";
             }
             
-            if (activeData.isTIR) {
-                document.getElementById('valRefract').innerText = "---";
-                if(!isPractice) tirBadge.style.display = 'block';
+            if (activeData.hasTIR && !isPractice) {
+                tirBadge.style.display = 'block';
             } else {
-                document.getElementById('valRefract').innerText = toDeg(activeData.theta_r).toFixed(1) + "°";
-                tirBadge.style.display = 'none';
-            }
-
-            if(isPractice) {
-                document.getElementById('valRefract').innerText = "???";
                 tirBadge.style.display = 'none';
             }
         }
 
+        // Listeners
         document.getElementById('angleSlider').addEventListener('input', (e) => {
             state.angle = parseInt(e.target.value);
             const hint = document.getElementById('hintBubble');
             if(hint) hint.classList.add('fade-out');
+            draw();
+        });
+        
+        document.getElementById('offsetSlider').addEventListener('input', (e) => {
+            state.offset = parseInt(e.target.value);
             draw();
         });
 
@@ -608,7 +756,7 @@
             const isChecked = document.getElementById('toggleDirection').checked;
             state.direction = isChecked ? 'air_to_glass' : 'glass_to_air';
             document.getElementById('directionLabel').innerText = isChecked ? '空氣 → 玻璃' : '玻璃 → 空氣';
-            // Clear ghost when switching mode to avoid confusion
+            // Reset sliders for better UX on switch? Or keep them. Keeping allows comparison.
             if (ghostState) toggleGhost();
             draw();
         }
@@ -640,17 +788,13 @@
             draw();
         }
 
-        // Drawing System
         window.setColor = function(c, el) {
             drawColor = c;
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
             el.classList.add('active');
         }
         window.clearDrawing = function() { dCtx.clearRect(0,0,width,height); }
-        
-        window.toggleLineMode = function() {
-            isLineMode = document.getElementById('checkLineMode').checked;
-        }
+        window.toggleLineMode = function() { isLineMode = document.getElementById('checkLineMode').checked; }
 
         function getPos(e) {
             const r = drawCanvas.getBoundingClientRect();
@@ -659,107 +803,39 @@
             const sx = width / r.width; const sy = height / r.height;
             return { x: (cx - r.left) * sx, y: (cy - r.top) * sy };
         }
-
         function startStroke(e) {
             if (!document.getElementById('checkDraw').checked) return;
             if(e.type === 'touchstart') e.preventDefault();
-            isDrawing = true;
-            lastPos = getPos(e);
-            
-            if (isLineMode) {
-                // Save current canvas state to support preview
-                drawSnapshot = dCtx.getImageData(0, 0, width, height);
-            } else {
-                dCtx.beginPath();
-                dCtx.moveTo(lastPos.x, lastPos.y);
-            }
+            isDrawing = true; lastPos = getPos(e);
+            if (isLineMode) drawSnapshot = dCtx.getImageData(0, 0, width, height);
+            else { dCtx.beginPath(); dCtx.moveTo(lastPos.x, lastPos.y); }
         }
-
         function moveStroke(e) {
             if (!isDrawing) return;
             if(e.type === 'touchmove') e.preventDefault();
             const p = getPos(e);
-            
             if (isLineMode) {
-                // Restore original state to clear previous preview lines
-                if (drawSnapshot) dCtx.putImageData(drawSnapshot, 0, 0);
-                
-                // Draw Extension Lines (Infinite Dashed)
-                dCtx.save();
-                dCtx.beginPath();
-                const dx = p.x - lastPos.x;
-                const dy = p.y - lastPos.y;
-                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-                    const slopeLen = Math.sqrt(dx*dx + dy*dy);
-                    const ndx = dx / slopeLen;
-                    const ndy = dy / slopeLen;
-                    const EXT_LEN = 2000;
-                    
-                    dCtx.moveTo(lastPos.x - ndx * EXT_LEN, lastPos.y - ndy * EXT_LEN);
-                    dCtx.lineTo(lastPos.x + ndx * EXT_LEN, lastPos.y + ndy * EXT_LEN);
+                dCtx.putImageData(drawSnapshot, 0, 0);
+                dCtx.save(); dCtx.beginPath();
+                // Ext line
+                const dx = p.x - lastPos.x; const dy = p.y - lastPos.y;
+                if (Math.abs(dx)>1 || Math.abs(dy)>1) {
+                    const len = Math.sqrt(dx*dx+dy*dy);
+                    const nx = dx/len; const ny = dy/len;
+                    dCtx.moveTo(lastPos.x - nx*2000, lastPos.y - ny*2000);
+                    dCtx.lineTo(lastPos.x + nx*2000, lastPos.y + ny*2000);
                 }
-                dCtx.strokeStyle = drawColor;
-                dCtx.lineWidth = 1;
-                dCtx.setLineDash([5, 5]);
-                dCtx.globalAlpha = 0.6;
-                dCtx.stroke();
-                dCtx.restore();
-
-                // Draw Actual Segment (Solid)
-                dCtx.beginPath();
-                dCtx.moveTo(lastPos.x, lastPos.y);
-                dCtx.lineTo(p.x, p.y);
-                dCtx.lineCap = 'round';
-                dCtx.lineJoin = 'round';
-                dCtx.lineWidth = 4;
-                dCtx.strokeStyle = drawColor;
-                dCtx.setLineDash([]);
-                dCtx.stroke();
-            } else {
-                // Freehand
+                dCtx.strokeStyle = drawColor; dCtx.lineWidth = 1; dCtx.setLineDash([5, 5]); dCtx.globalAlpha = 0.6; dCtx.stroke(); dCtx.restore();
+                
+                dCtx.beginPath(); dCtx.moveTo(lastPos.x, lastPos.y); dCtx.lineTo(p.x, p.y);
                 dCtx.lineCap = 'round'; dCtx.lineJoin = 'round'; dCtx.lineWidth = 4;
-                dCtx.lineTo(p.x, p.y);
-                dCtx.strokeStyle = drawColor; 
-                dCtx.stroke(); 
+                dCtx.strokeStyle = drawColor; dCtx.setLineDash([]); dCtx.stroke();
+            } else {
+                dCtx.lineCap = 'round'; dCtx.lineJoin = 'round'; dCtx.lineWidth = 4;
+                dCtx.lineTo(p.x, p.y); dCtx.strokeStyle = drawColor; dCtx.stroke();
             }
         }
-
-        function endStroke(e) {
-            if (!isDrawing) return;
-            if (isLineMode && e) {
-                // Finalize the line (no extensions)
-                // The last moveStroke already drew the solid line + extension.
-                // We need to clear the extension lines one last time and draw ONLY solid.
-                // Note: 'e' might be mouseup/touchend which doesn't have coordinates.
-                // We use last known position from move logic if possible, or just commit what's on screen?
-                // Actually, moveStroke restores snapshot then draws. So the canvas currently has extensions.
-                // We need to restore snapshot and draw just the segment.
-                // However, capturing 'p' is hard in endStroke.
-                
-                // Better approach: don't clear extension on end? 
-                // "Auxiliary line" usually implies temporary aid.
-                // So we want to remove the dashed lines.
-                // But we don't know 'p' here easily without tracking.
-                // Let's track `currentPos` globally during move.
-                
-                // Simpler: The user asked for "Extension line *assist*". 
-                // Usually this means while dragging. Once dropped, it's just a line.
-                // To do this cleanly, we need the last mouse position.
-            }
-            isDrawing = false;
-            // To properly clear extensions on mouse up, we'd need to redraw the final segment without extensions.
-            // Since I didn't track the exact final coordinate in a global var in this simple setup,
-            // the dashed lines might persist until next draw. 
-            // Let's improve it by just letting it be or adding a small tracking var.
-            // *Self-Correction*: `dCtx.putImageData` is destructive.
-            // To keep it simple and robust for this request, I will just leave the extension visible 
-            // OR I can strictly track it. 
-            // Given the code structure, I'll update `lastPos` logic to be robust in next step if needed.
-            // For now, the "preview" logic in moveStroke is sufficient for the "assist" request.
-            // Actually, let's fix the "persist" issue:
-            // The last moveStroke leaves dashed lines. If I want them gone, I must redraw.
-            // But since I don't have 'p' here, I will leave them as "guides" which is often useful.
-        }
+        function endStroke() { isDrawing = false; }
         
         drawCanvas.addEventListener('mousedown', startStroke);
         drawCanvas.addEventListener('mousemove', moveStroke);
