@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>半圓透鏡折射  | 尤達數理</title>
+    <title>半圓透鏡折射 (平板優化版) | 尤達數理</title>
     <style>
         :root {
             --header-bg: #2d3748;
@@ -46,14 +46,14 @@
         }
 
         .brand {
-            font-size: 1.2rem;
+            font-size: 1.4rem; /* Slightly larger text */
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .brand svg { width: 24px; height: 24px; fill: white; }
+        .brand svg { width: 28px; height: 28px; fill: white; }
 
         /* Main Layout */
         .main-container {
@@ -63,33 +63,35 @@
             flex-direction: row;
         }
 
-        /* Canvas Area - High Contrast for Projector */
+        /* Canvas Area - High Contrast & Responsive Size */
         .canvas-area {
             flex: 1;
-            background-color: #4a5568; /* Darker background to make canvas pop */
+            background-color: #4a5568;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
             position: relative;
             overflow: auto;
         }
 
         .canvas-card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); /* Stronger shadow */
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             padding: 0;
             position: relative;
-            width: 100%;
-            max-width: 600px;
+            /* Tablet Optimization: Use vmin to fill screen */
+            width: 95vmin; 
+            max-width: 800px;
             aspect-ratio: 1/1;
+            flex-shrink: 0;
         }
 
         canvas {
             width: 100%;
             height: 100%;
-            border-radius: 8px;
+            border-radius: 12px;
             display: block;
         }
 
@@ -98,7 +100,7 @@
 
         /* Sidebar Controls */
         .sidebar {
-            width: 380px;
+            width: 400px; /* Slightly wider for easier touch */
             background: white;
             border-left: 1px solid var(--border-color);
             display: flex;
@@ -106,6 +108,7 @@
             overflow-y: auto;
             flex-shrink: 0;
             box-shadow: -2px 0 5px rgba(0,0,0,0.02);
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
         }
 
         .sidebar-content {
@@ -113,54 +116,72 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            padding-bottom: 50px; /* Extra space at bottom */
         }
 
-        @media (max-width: 900px) {
+        /* Tablet/Mobile Breakpoint - Increased to catch tablets in portrait */
+        @media (max-width: 1024px) {
             .main-container { flex-direction: column; overflow-y: auto; }
             body { height: auto; overflow: auto; }
-            .canvas-area { min-height: 400px; padding: 10px; }
-            .sidebar { width: 100%; border-left: none; border-top: 1px solid var(--border-color); height: auto; overflow-y: visible; }
+            
+            .canvas-area { 
+                min-height: auto; 
+                padding: 15px; 
+                flex: none; /* Allow it to size naturally */
+            }
+            
+            .sidebar { 
+                width: 100%; 
+                border-left: none; 
+                border-top: 1px solid var(--border-color); 
+                height: auto; 
+                overflow-y: visible; 
+                flex: none;
+            }
         }
 
-        /* UI Components */
+        /* UI Components - Enlarged for Touch */
         .section-title {
-            font-size: 0.95rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: var(--text-sub);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 8px;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 5px;
+            padding-bottom: 8px;
         }
-        .section-title svg { width: 16px; height: 16px; fill: var(--text-sub); }
+        .section-title svg { width: 20px; height: 20px; fill: var(--text-sub); }
 
-        .control-block { background: white; margin-bottom: 5px; }
+        .control-block { background: white; margin-bottom: 10px; }
 
-        label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+        label { display: block; font-size: 1rem; font-weight: 600; margin-bottom: 10px; color: var(--text-main); }
 
+        /* Larger Sliders */
         input[type=range] {
-            width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px;
-            outline: none; -webkit-appearance: none; margin: 10px 0;
+            width: 100%; height: 12px; /* Thicker track */
+            background: #e2e8f0; border-radius: 6px;
+            outline: none; -webkit-appearance: none; margin: 15px 0;
         }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 18px; height: 18px;
+            -webkit-appearance: none; width: 28px; height: 28px; /* Larger thumb */
             background: var(--primary-color); border-radius: 50%; cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.1s;
         }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
+        /* Larger Inputs */
         input[type=number] {
-            padding: 4px 8px;
+            padding: 8px 12px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.9rem;
+            border-radius: 6px;
+            font-size: 1rem;
             color: var(--primary-color);
             font-weight: bold;
-            width: 60px;
+            width: 70px;
             text-align: right;
             font-family: monospace;
         }
@@ -170,17 +191,19 @@
             box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
         }
 
+        /* Larger Buttons */
         .btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; padding: 10px; border: none; border-radius: 6px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: white;
+            width: 100%; padding: 14px; /* Taller buttons */
+            border: none; border-radius: 8px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: white;
         }
         .btn-primary { background-color: var(--primary-color); }
         .btn-practice { background-color: var(--practice-color); }
         .btn-ghost { background-color: var(--ghost-color); }
         .btn-ghost.active { box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); background-color: var(--ghost-hover); }
         .btn-outline-danger {
-            background: transparent; border: 1px solid var(--danger-color); color: var(--danger-color);
+            background: transparent; border: 2px solid var(--danger-color); color: var(--danger-color);
         }
         .btn-outline-danger:hover { background-color: #fff5f5; }
 
@@ -189,8 +212,8 @@
             border: none;
             color: var(--text-sub);
             cursor: pointer;
-            font-size: 1.2rem;
-            padding: 0 5px;
+            font-size: 1.5rem; /* Larger icon */
+            padding: 5px 10px;
             transition: color 0.2s;
             line-height: 1;
         }
@@ -198,43 +221,48 @@
             color: var(--primary-color);
         }
 
-        .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        
+        /* Larger Toggle Switch */
+        .toggle-switch { position: relative; display: inline-block; width: 54px; height: 30px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e0; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary-color); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        input:checked + .slider:before { transform: translateX(24px); }
 
-        .data-table { width: 100%; font-size: 0.9rem; border-collapse: collapse; }
-        .data-table td { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
+        .data-table { width: 100%; font-size: 1rem; border-collapse: collapse; }
+        .data-table td { padding: 10px 0; border-bottom: 1px dashed var(--border-color); }
         .data-table td:last-child { text-align: right; font-family: monospace; font-weight: bold; color: var(--primary-color); }
 
         .status-badge {
-            font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; text-align: center;
-            margin-top: 10px; display: none; font-weight: bold;
+            font-size: 1rem; padding: 10px 15px; border-radius: 6px; text-align: center;
+            margin-top: 12px; display: none; font-weight: bold;
         }
         .bg-practice { background: #fefcbf; color: #744210; border: 1px solid #f6e05e; }
         .bg-ghost { background: #faf5ff; color: #553c9a; border: 1px solid #d6bcfa; }
         .bg-danger { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
 
-        .color-row { display: flex; gap: 10px; margin-top: 10px; }
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e2e8f0; cursor: pointer; transition: transform 0.1s; }
-        .color-dot.active { transform: scale(1.1); border-color: var(--text-main); }
+        .color-row { display: flex; gap: 15px; margin-top: 10px; }
+        .color-dot { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #e2e8f0; cursor: pointer; transition: transform 0.1s; }
+        .color-dot.active { transform: scale(1.15); border-color: var(--text-main); }
 
         .hint-tooltip {
-            position: absolute; background: var(--danger-color); color: white; padding: 6px 12px;
-            border-radius: 20px; font-size: 0.85rem; font-weight: bold;
-            top: -35px; right: 0; pointer-events: none; animation: bounce 1.5s infinite; z-index: 20;
+            position: absolute; background: var(--danger-color); color: white; padding: 8px 14px;
+            border-radius: 20px; font-size: 1rem; font-weight: bold;
+            top: -45px; right: 0; pointer-events: none; animation: bounce 1.5s infinite; z-index: 20;
         }
         .hint-tooltip::after {
-            content: ''; position: absolute; bottom: -5px; right: 15px;
-            border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--danger-color);
+            content: ''; position: absolute; bottom: -6px; right: 20px;
+            border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid var(--danger-color);
         }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         .fade-out { opacity: 0; transition: opacity 0.5s; }
 
-        .switch-label { font-size: 0.9rem; font-weight: bold; color: var(--primary-color); }
+        .switch-label { font-size: 1rem; font-weight: bold; color: var(--primary-color); }
+
+        /* Checkbox Scaling */
+        input[type=checkbox] { transform: scale(1.3); margin-right: 5px; }
 
     </style>
 </head>
@@ -268,7 +296,7 @@
                     </div>
 
                     <!-- Direction Toggle -->
-                    <div class="toggle-row" style="background: #edf2f7; padding: 10px; border-radius: 8px;">
+                    <div class="toggle-row" style="background: #edf2f7; padding: 15px; border-radius: 8px;">
                         <span id="directionLabel" class="switch-label">空氣 → 玻璃</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="toggleDirection" checked onchange="toggleDirection()">
@@ -288,7 +316,7 @@
                         </div>
                     </div>
 
-                    <div style="position: relative; margin-top: 10px;">
+                    <div style="position: relative; margin-top: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <label style="margin:0;">入射光偏移 (Offset)</label>
                             <button class="btn-reset" onclick="resetOffset()" title="重置偏移">↺</button>
@@ -299,13 +327,13 @@
                         </div>
                     </div>
 
-                    <label style="margin-top:15px;">玻璃折射率 (n)</label>
+                    <label style="margin-top:20px;">玻璃折射率 (n)</label>
                     <input type="range" id="nSlider" min="1.0" max="2.5" value="1.50" step="0.01">
                     <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
                         n = <span id="nDisplay">1.50</span>
                     </div>
 
-                    <hr style="border:0; border-top:1px dashed #e2e8f0; margin: 15px 0;">
+                    <hr style="border:0; border-top:1px dashed #e2e8f0; margin: 20px 0;">
 
                     <div class="toggle-row">
                         <label style="margin:0;">顯示法線</label>
@@ -322,8 +350,8 @@
                         <svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
                         繪圖板
                         <div style="flex:1"></div>
-                        <button class="btn btn-outline-danger" onclick="undoDrawing()" style="width:auto; padding: 4px 10px; font-size: 0.8rem; margin-right: 5px;">↩ 復原</button>
-                        <button class="btn btn-outline-danger" onclick="clearDrawing()" style="width:auto; padding: 4px 10px; font-size: 0.8rem;">清除</button>
+                        <button class="btn btn-outline-danger" onclick="undoDrawing()" style="width:auto; padding: 8px 16px; font-size: 0.9rem; margin-right: 8px;">↩ 復原</button>
+                        <button class="btn btn-outline-danger" onclick="clearDrawing()" style="width:auto; padding: 8px 16px; font-size: 0.9rem;">清除</button>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <div class="color-row">
@@ -398,6 +426,7 @@
     </div>
 
     <script>
+    (function() {
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const drawCanvas = document.getElementById('drawCanvas');
@@ -425,7 +454,7 @@
         let isLineMode = false;
         let drawColor = '#2d3748';
         let lastPos = {x:0, y:0};
-        let currentStrokeEnd = null; // Track current end pos for line mode
+        let currentStrokeEnd = null; 
         let drawSnapshot = null;
         let undoStack = [];
         const MAX_UNDO = 20;
@@ -495,7 +524,6 @@
             let hasTIR = false;
             let currPos = startPos;
             let currDir = startDir;
-            
             let flatHitInfo = null; 
 
             let hit1 = null;
@@ -566,12 +594,10 @@
                 path.push({ x: hit2.x + refDir.x * 400, y: hit2.y + refDir.y * 400 });
             } else {
                 rVec2 = normalize(rVec2);
-                
                 if (hit2.type === 'flat' && flatHitInfo) {
                     let dotR = rVec2.x * hit2.nx + rVec2.y * hit2.ny;
                     flatHitInfo.theta_r = Math.acos(Math.min(1, Math.abs(dotR)));
                 }
-                
                 path.push({ x: hit2.x + rVec2.x * 400, y: hit2.y + rVec2.y * 400 });
             }
 
@@ -604,7 +630,7 @@
 
         function drawArrowHead(ctx, x, y, dx, dy, color) {
             const angle = Math.atan2(dy, dx);
-            const size = 12; // Increased size for better visibility
+            const size = 12; 
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle);
@@ -624,67 +650,80 @@
             ctx.globalAlpha = opacity;
             ctx.translate(cx, cy);
 
-            // 1. Draw Semicircle Block (BOTTOM Half) - Increased Contrast
+            // Draw Block
             ctx.beginPath();
             ctx.arc(0, 0, R, 0, Math.PI); 
             ctx.closePath();
-            
             if (!isGhost) {
-                // Darker fill for projector
                 ctx.fillStyle = "rgba(49, 130, 206, 0.4)"; 
                 ctx.fill();
             }
-            // Thicker outline
             ctx.strokeStyle = isGhost ? "#aaa" : "#2d3748";
             ctx.lineWidth = 4;
             if (isGhost) ctx.setLineDash([5, 5]);
             ctx.stroke();
             ctx.setLineDash([]);
 
-            if (!(isPractice && !isGhost)) {
-                // Path
+            // Draw Path
+            if (data.path.length > 0) {
+                const p0 = data.path[0];
                 ctx.beginPath();
-                if (data.path.length > 0) {
-                    const p0 = data.path[0];
-                    ctx.moveTo(p0.x, p0.y); 
-                    for (let i = 1; i < data.path.length; i++) {
-                        ctx.lineTo(data.path[i].x, data.path[i].y);
-                    }
-                }
-                const pathColor = data.hasTIR ? "#e53e3e" : "#3182ce";
-                ctx.strokeStyle = isGhost ? "#e53e3e" : pathColor;
-                // Thicker rays
-                ctx.lineWidth = 5; 
-                ctx.stroke();
-
-                // Arrows
+                ctx.moveTo(p0.x, p0.y); 
+                
                 for (let i = 0; i < data.path.length - 1; i++) {
-                    const p1 = data.path[i];
-                    const p2 = data.path[i+1];
-                    const mx = (p1.x + p2.x) / 2;
-                    const my = (p1.y + p2.y) / 2;
-                    const dx = p2.x - p1.x;
-                    const dy = p2.y - p1.y;
+                    const isPracticeActive = isPractice && !isGhost;
+                    
+                    if (isPracticeActive) {
+                        // air_to_glass: keep 0,1. hide >= 1?
+                        // segments: 0->1(inc), 1->2(glass), 2->3(exit)
+                        // air_to_glass: keep air inc (seg 0). Hide seg 1, 2.
+                        if (state.direction === 'air_to_glass' && i >= 1) continue;
+                        // glass_to_air: keep source(0), glass(1). Hide exit(2).
+                        if (state.direction === 'glass_to_air' && i >= 2) continue;
+                    }
+
+                    const pStart = data.path[i];
+                    const pEnd = data.path[i+1];
+                    
+                    // Draw segment independently
+                    // Need to move to start of each segment because we might skip
+                    ctx.beginPath(); // Start new path for each segment
+                    ctx.moveTo(pStart.x, pStart.y);
+                    ctx.lineTo(pEnd.x, pEnd.y);
+                    
+                    const isLastSegment = (i === data.path.length - 2);
+                    const pathColor = data.hasTIR && isLastSegment ? "#e53e3e" : (isLastSegment ? "#3182ce" : "#e53e3e");
+                    
+                    ctx.strokeStyle = isGhost ? "#e53e3e" : pathColor;
+                    ctx.lineWidth = 5;
+                    ctx.stroke();
+
+                    // Arrow
+                    const mx = (pStart.x + pEnd.x) / 2;
+                    const my = (pStart.y + pEnd.y) / 2;
+                    const dx = pEnd.x - pStart.x;
+                    const dy = pEnd.y - pStart.y;
                     if (Math.abs(dx) + Math.abs(dy) > 10) {
                         drawArrowHead(ctx, mx, my, dx, dy, isGhost ? "#e53e3e" : pathColor);
                     }
                 }
+            }
 
-                // Normals
-                if (state.showNormal && !isGhost) {
-                    // Darker normals
-                    ctx.strokeStyle = "#000000"; 
-                    ctx.setLineDash([4, 4]);
-                    ctx.lineWidth = 2;
-                    data.normals.forEach(n => {
-                        const len = 40;
-                        ctx.beginPath();
-                        ctx.moveTo(n.x - n.nx * len, n.y - n.ny * len);
-                        ctx.lineTo(n.x + n.nx * len, n.y + n.ny * len);
-                        ctx.stroke();
-                    });
-                    ctx.setLineDash([]);
-                }
+            if (state.showNormal && !isGhost) {
+                ctx.strokeStyle = "#000000"; 
+                ctx.setLineDash([4, 4]);
+                ctx.lineWidth = 2;
+                data.normals.forEach((n, idx) => {
+                    // Hide exit normal in practice mode
+                    if (isPractice && idx === 1) return;
+                    
+                    const len = 40;
+                    ctx.beginPath();
+                    ctx.moveTo(n.x - n.nx * len, n.y - n.ny * len);
+                    ctx.lineTo(n.x + n.nx * len, n.y + n.ny * len);
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
             }
             ctx.restore();
         }
@@ -762,7 +801,7 @@
             const isChecked = document.getElementById('toggleDirection').checked;
             state.direction = isChecked ? 'air_to_glass' : 'glass_to_air';
             document.getElementById('directionLabel').innerText = isChecked ? '空氣 → 玻璃' : '玻璃 → 空氣';
-            if (ghostState) toggleGhost();
+            if (ghostState) window.toggleGhost();
             draw();
         }
 
@@ -898,8 +937,11 @@
         drawCanvas.addEventListener('touchmove', moveStroke, {passive: false});
         window.addEventListener('touchend', endStroke);
 
+        // Initial setup
         draw();
+        // Initialize pointer events based on default checkbox state (unchecked)
         toggleDraw();
+    })();
     </script>
 </body>
 </html>
