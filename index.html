@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>半圓透鏡折射 (進階版) | 尤達數理</title>
+    <title>半圓透鏡折射  | 尤達數理</title>
     <style>
         :root {
             --header-bg: #2d3748;
@@ -63,10 +63,10 @@
             flex-direction: row;
         }
 
-        /* Canvas Area */
+        /* Canvas Area - High Contrast for Projector */
         .canvas-area {
             flex: 1;
-            background-color: #edf2f7;
+            background-color: #4a5568; /* Darker background to make canvas pop */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -78,7 +78,7 @@
         .canvas-card {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); /* Stronger shadow */
             padding: 0;
             position: relative;
             width: 100%;
@@ -94,7 +94,7 @@
         }
 
         #simCanvas { position: absolute; top: 0; left: 0; z-index: 1; }
-        #drawCanvas { position: absolute; top: 0; left: 0; z-index: 2; touch-action: none; cursor: crosshair; }
+        #drawCanvas { position: absolute; top: 0; left: 0; z-index: 2; touch-action: none; cursor: crosshair; pointer-events: none; } 
 
         /* Sidebar Controls */
         .sidebar {
@@ -153,6 +153,23 @@
         }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
+        input[type=number] {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            width: 60px;
+            text-align: right;
+            font-family: monospace;
+        }
+        input[type=number]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+        }
+
         .btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             width: 100%; padding: 10px; border: none; border-radius: 6px;
@@ -164,6 +181,21 @@
         .btn-ghost.active { box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); background-color: var(--ghost-hover); }
         .btn-outline-danger {
             background: transparent; border: 1px solid var(--danger-color); color: var(--danger-color);
+        }
+        .btn-outline-danger:hover { background-color: #fff5f5; }
+
+        .btn-reset {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 5px;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+        .btn-reset:hover {
+            color: var(--primary-color);
         }
 
         .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -202,7 +234,6 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
         .fade-out { opacity: 0; transition: opacity 0.5s; }
 
-        /* Custom Switch Label Style */
         .switch-label { font-size: 0.9rem; font-weight: bold; color: var(--primary-color); }
 
     </style>
@@ -229,6 +260,118 @@
         <div class="sidebar">
             <div class="sidebar-content">
                 
+                <!-- Settings -->
+                <div class="control-block">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" /></svg>
+                        實驗設定
+                    </div>
+
+                    <!-- Direction Toggle -->
+                    <div class="toggle-row" style="background: #edf2f7; padding: 10px; border-radius: 8px;">
+                        <span id="directionLabel" class="switch-label">空氣 → 玻璃</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleDirection" checked onchange="toggleDirection()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label style="margin:0;">入射光角度 (θi)</label>
+                            <button class="btn-reset" onclick="resetAngle()" title="重置角度">↺</button>
+                        </div>
+                        <div id="hintBubble" class="hint-tooltip">拖曳這裡改變角度！</div>
+                        <input type="range" id="angleSlider" min="-80" max="80" value="0" step="1">
+                        <div style="text-align: right; color: var(--primary-color); font-weight: bold; display: flex; align-items: center; justify-content: flex-end; gap: 5px;">
+                            <input type="number" id="angleInput" value="0" min="-80" max="80" step="1"> °
+                        </div>
+                    </div>
+
+                    <div style="position: relative; margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label style="margin:0;">入射光偏移 (Offset)</label>
+                            <button class="btn-reset" onclick="resetOffset()" title="重置偏移">↺</button>
+                        </div>
+                        <input type="range" id="offsetSlider" min="-180" max="180" value="0" step="1">
+                        <div style="text-align: right; color: var(--primary-color); font-weight: bold; display: flex; align-items: center; justify-content: flex-end; gap: 5px;">
+                            <input type="number" id="offsetInput" value="0" min="-180" max="180" step="1"> px
+                        </div>
+                    </div>
+
+                    <label style="margin-top:15px;">玻璃折射率 (n)</label>
+                    <input type="range" id="nSlider" min="1.0" max="2.5" value="1.50" step="0.01">
+                    <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
+                        n = <span id="nDisplay">1.50</span>
+                    </div>
+
+                    <hr style="border:0; border-top:1px dashed #e2e8f0; margin: 15px 0;">
+
+                    <div class="toggle-row">
+                        <label style="margin:0;">顯示法線</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleNormal" checked onchange="updateDraw()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Drawing -->
+                <div class="control-block">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
+                        繪圖板
+                        <div style="flex:1"></div>
+                        <button class="btn btn-outline-danger" onclick="undoDrawing()" style="width:auto; padding: 4px 10px; font-size: 0.8rem; margin-right: 5px;">↩ 復原</button>
+                        <button class="btn btn-outline-danger" onclick="clearDrawing()" style="width:auto; padding: 4px 10px; font-size: 0.8rem;">清除</button>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div class="color-row">
+                            <div class="color-dot active" style="background: #2d3748;" onclick="setColor('#2d3748', this)"></div>
+                            <div class="color-dot" style="background: #e53e3e;" onclick="setColor('#e53e3e', this)"></div>
+                            <div class="color-dot" style="background: #3182ce;" onclick="setColor('#3182ce', this)"></div>
+                            <div class="color-dot" style="background: #38a169;" onclick="setColor('#38a169', this)"></div>
+                        </div>
+                        <div style="display: flex; gap: 15px;">
+                            <label style="font-weight: normal; margin: 0; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="checkLineMode" onchange="toggleLineMode()"> 直線模式
+                            </label>
+                            <label style="font-weight: normal; margin: 0; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="checkDraw" onchange="toggleDraw()"> 啟用
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison / Data -->
+                <div class="control-block">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" /></svg>
+                        數據
+                    </div>
+                    
+                    <button class="btn btn-ghost" id="btnGhost" onclick="toggleGhost()">
+                        <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" /></svg>
+                        鎖定殘影
+                    </button>
+                    <div id="statusGhost" class="status-badge bg-ghost">比較模式開啟</div>
+
+                    <table class="data-table" style="margin-top: 15px;">
+                        <tr>
+                            <td>臨界角 (θc)</td>
+                            <td id="valCritical">--</td>
+                        </tr>
+                        <tr>
+                            <td>折射角 (θr)</td>
+                            <td id="valRefract">--</td>
+                        </tr>
+                    </table>
+                    
+                    <div id="statusTIR" class="status-badge bg-danger">
+                        ⚠️ 發生全反射 (TIR)
+                    </div>
+                </div>
+
                 <!-- Practice Mode -->
                 <div class="control-block">
                     <div class="section-title">
@@ -250,107 +393,6 @@
                     </div>
                 </div>
 
-                <!-- Settings -->
-                <div class="control-block">
-                    <div class="section-title">
-                        <svg viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" /></svg>
-                        實驗設定
-                    </div>
-
-                    <!-- Direction Toggle -->
-                    <div class="toggle-row" style="background: #edf2f7; padding: 10px; border-radius: 8px;">
-                        <span id="directionLabel" class="switch-label">玻璃 → 空氣</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="toggleDirection" onchange="toggleDirection()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div style="position: relative;">
-                        <label>入射光角度</label>
-                        <div id="hintBubble" class="hint-tooltip">拖曳這裡改變角度！</div>
-                        <input type="range" id="angleSlider" min="-80" max="80" value="0" step="1">
-                        <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
-                            <span id="angleDisplay">0</span>°
-                        </div>
-                    </div>
-
-                    <div style="position: relative;">
-                        <label>入射光偏移 (Offset)</label>
-                        <input type="range" id="offsetSlider" min="-180" max="180" value="0" step="1">
-                        <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
-                            <span id="offsetDisplay">0</span> px
-                        </div>
-                    </div>
-
-                    <label style="margin-top:15px;">玻璃折射率 (n)</label>
-                    <input type="range" id="nSlider" min="1.0" max="2.5" value="1.50" step="0.01">
-                    <div style="text-align: right; color: var(--primary-color); font-weight: bold;">
-                        n = <span id="nDisplay">1.50</span>
-                    </div>
-
-                    <hr style="border:0; border-top:1px dashed #e2e8f0; margin: 15px 0;">
-
-                    <div class="toggle-row">
-                        <label style="margin:0;">顯示法線</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="toggleNormal" checked onchange="updateDraw()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Comparison -->
-                <div class="control-block">
-                    <div class="section-title">
-                        <svg viewBox="0 0 24 24"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" /></svg>
-                        數據
-                    </div>
-                    
-                    <button class="btn btn-ghost" id="btnGhost" onclick="toggleGhost()">
-                        <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" /></svg>
-                        鎖定殘影
-                    </button>
-                    <div id="statusGhost" class="status-badge bg-ghost">比較模式開啟</div>
-
-                    <table class="data-table" style="margin-top: 15px;">
-                        <tr>
-                            <td>臨界角 (θc)</td>
-                            <td id="valCritical">--</td>
-                        </tr>
-                    </table>
-                    
-                    <div id="statusTIR" class="status-badge bg-danger">
-                        ⚠️ 發生全反射 (TIR)
-                    </div>
-                </div>
-
-                <!-- Drawing -->
-                <div class="control-block">
-                    <div class="section-title">
-                        <svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
-                        繪圖板
-                        <div style="flex:1"></div>
-                        <button class="btn btn-outline-danger" onclick="clearDrawing()" style="width:auto; padding: 4px 10px; font-size: 0.8rem;">清除</button>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div class="color-row">
-                            <div class="color-dot active" style="background: #2d3748;" onclick="setColor('#2d3748', this)"></div>
-                            <div class="color-dot" style="background: #e53e3e;" onclick="setColor('#e53e3e', this)"></div>
-                            <div class="color-dot" style="background: #3182ce;" onclick="setColor('#3182ce', this)"></div>
-                            <div class="color-dot" style="background: #38a169;" onclick="setColor('#38a169', this)"></div>
-                        </div>
-                        <div style="display: flex; gap: 15px;">
-                            <label style="font-weight: normal; margin: 0; display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="checkLineMode" onchange="toggleLineMode()"> 直線模式
-                            </label>
-                            <label style="font-weight: normal; margin: 0; display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="checkDraw" checked> 啟用
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -365,14 +407,14 @@
         const height = 800;
         const cx = 400;
         const cy = 400;
-        const R = 200; // Semicircle Radius
+        const R = 200; 
 
         let state = {
             n: 1.50,
             angle: 0,
             offset: 0,
             showNormal: true,
-            direction: 'glass_to_air'
+            direction: 'air_to_glass'
         };
 
         let ghostState = null;
@@ -383,149 +425,117 @@
         let isLineMode = false;
         let drawColor = '#2d3748';
         let lastPos = {x:0, y:0};
+        let currentStrokeEnd = null; // Track current end pos for line mode
         let drawSnapshot = null;
+        let undoStack = [];
+        const MAX_UNDO = 20;
 
-        // Math
         function toRad(deg) { return deg * Math.PI / 180; }
         function toDeg(rad) { return rad * 180 / Math.PI; }
         function normalize(v) { const len = Math.sqrt(v.x*v.x + v.y*v.y); return {x:v.x/len, y:v.y/len}; }
 
-        // --- Vector Ray Tracing Core ---
         function refract(I, N, n1, n2) {
             const r = n1 / n2;
-            // Ensure normal faces incident ray
             let calcN = N;
-            if (I.x * N.x + I.y * N.y > 0) {
-                calcN = { x: -N.x, y: -N.y };
-            }
-            
+            if (I.x * N.x + I.y * N.y > 0) calcN = { x: -N.x, y: -N.y };
             const c = -(I.x * calcN.x + I.y * calcN.y);
             const disc = 1 - r * r * (1 - c * c);
-            if (disc < 0) return null; // TIR
-
+            if (disc < 0) return null;
             const scalar = r * c - Math.sqrt(disc);
-            return {
-                x: r * I.x + scalar * calcN.x,
-                y: r * I.y + scalar * calcN.y
-            };
+            return { x: r * I.x + scalar * calcN.x, y: r * I.y + scalar * calcN.y };
         }
 
         function reflect(I, N) {
             let calcN = N;
-            if (I.x * N.x + I.y * N.y > 0) {
-                calcN = { x: -N.x, y: -N.y };
-            }
+            if (I.x * N.x + I.y * N.y > 0) calcN = { x: -N.x, y: -N.y };
             const dot = I.x * calcN.x + I.y * calcN.y;
-            return {
-                x: I.x - 2 * dot * calcN.x,
-                y: I.y - 2 * dot * calcN.y
-            };
+            return { x: I.x - 2 * dot * calcN.x, y: I.y - 2 * dot * calcN.y };
         }
 
-        // Geometry: Bottom Semicircle
-        // Flat Face: y=0, x in [-R, R]
-        // Curved Face: x^2 + y^2 = R^2, y > 0
         function intersectFlat(pos, dir) {
-            // Intersect with y=0
             if (Math.abs(dir.y) < 1e-6) return null;
             const t = -pos.y / dir.y;
-            if (t < 1e-4) return null; // Behind or self
+            if (t < 1e-4) return null; 
             const xHit = pos.x + t * dir.x;
-            if (Math.abs(xHit) > R) return null; // Outside segment
-            return { t: t, x: xHit, y: 0, nx: 0, ny: -1 }; // Normal Up
+            if (Math.abs(xHit) > R) return null; 
+            return { t: t, x: xHit, y: 0, nx: 0, ny: -1, type: 'flat' }; 
         }
 
         function intersectArc(pos, dir) {
-            // Solve |P+tD|^2 = R^2
-            // P.P + 2t P.D + t^2 = R^2
             const A = 1;
             const B = 2 * (pos.x * dir.x + pos.y * dir.y);
             const C = (pos.x * pos.x + pos.y * pos.y) - R * R;
-            
             const disc = B*B - 4*A*C;
             if (disc < 0) return null;
             
             const t1 = (-B - Math.sqrt(disc)) / 2;
             const t2 = (-B + Math.sqrt(disc)) / 2;
-            
             let t = null;
-            if (t1 > 1e-4) t = t1;
-            else if (t2 > 1e-4) t = t2;
-            else return null;
+            if (t1 > 1e-4) t = t1; else if (t2 > 1e-4) t = t2; else return null;
 
             const xHit = pos.x + t * dir.x;
             const yHit = pos.y + t * dir.y;
             
-            // Check y > 0 condition for bottom semicircle
             if (yHit < 0) {
-                // Try other t if valid
                 if (t === t1 && t2 > 1e-4) {
                     const yHit2 = pos.y + t2 * dir.y;
-                    if (yHit2 >= 0) {
-                        t = t2; 
-                        // update coords
-                    } else return null;
+                    if (yHit2 >= 0) t = t2; else return null;
                 } else return null;
             }
             
-            // Recompute exact hit with chosen t
             const hx = pos.x + t*dir.x;
             const hy = pos.y + t*dir.y;
-            // Normal is radial (normalized hit pos)
             const nLen = Math.sqrt(hx*hx + hy*hy);
-            return { t: t, x: hx, y: hy, nx: hx/nLen, ny: hy/nLen };
+            return { t: t, x: hx, y: hy, nx: hx/nLen, ny: hy/nLen, type: 'arc' };
         }
 
         function traceRay(startPos, startDir, fromGlass) {
             let path = [startPos];
             let normals = [];
-            let rays = []; // Segments for drawing
             let hasTIR = false;
-
             let currPos = startPos;
             let currDir = startDir;
             
-            // Define refractive indices based on location
-            // Top (y<0): Air (1.0). Bottom (y>0): Glass (s.n).
-            // Logic: Ray starts outside. Enters block. Exits block.
-            
-            // Step 1: Intersection with Block Entry
-            // If fromGlass (Source Bottom), check IntersectArc
-            // If fromAir (Source Top), check IntersectFlat
-            
+            let flatHitInfo = null; 
+
             let hit1 = null;
             let n1 = 1.0, n2 = 1.0;
 
             if (fromGlass) {
                 hit1 = intersectArc(currPos, currDir);
-                n1 = 1.0; // Outside (Air)
-                n2 = state.n; // Inside (Glass)
+                n1 = 1.0; n2 = state.n;
             } else {
                 hit1 = intersectFlat(currPos, currDir);
-                n1 = 1.0; // Outside
-                n2 = state.n; // Inside
+                n1 = 1.0; n2 = state.n;
             }
 
             if (!hit1) {
-                // Missed the block entirely
                 path.push({ x: currPos.x + currDir.x * 1000, y: currPos.y + currDir.y * 1000 });
-                return { path, normals, hasTIR };
+                return { path, normals, hasTIR, flatHitInfo };
             }
 
-            // Hit 1 Found
             path.push({x: hit1.x, y: hit1.y});
             normals.push(hit1);
             
-            // Refract Entry
+            if (hit1.type === 'flat') {
+                let dot = currDir.x * hit1.nx + currDir.y * hit1.ny;
+                let incAng = Math.acos(Math.min(1, Math.abs(dot)));
+                flatHitInfo = { theta_i: incAng, theta_r: 0 }; 
+            }
+
             let rVec1 = refract(currDir, {x: hit1.nx, y: hit1.ny}, n1, n2);
-            if (!rVec1) { return { path, normals, hasTIR: true }; } // Should not happen entering 1.0 -> n
+            if (!rVec1) { return { path, normals, hasTIR: true, flatHitInfo }; }
             
             rVec1 = normalize(rVec1);
+            
+            if (hit1.type === 'flat' && flatHitInfo) {
+                let dotR = rVec1.x * hit1.nx + rVec1.y * hit1.ny;
+                flatHitInfo.theta_r = Math.acos(Math.min(1, Math.abs(dotR)));
+            }
+
             currDir = rVec1;
             currPos = {x: hit1.x, y: hit1.y};
 
-            // Step 2: Traverse inside, find Exit
-            // If entered Arc, looks for Flat. If entered Flat, looks for Arc.
             let hit2 = null;
             if (fromGlass) {
                 hit2 = intersectFlat(currPos, currDir);
@@ -534,71 +544,52 @@
             }
 
             if (!hit2) {
-                // Lost inside? Should not happen for convexity
                 path.push({ x: currPos.x + currDir.x * 1000, y: currPos.y + currDir.y * 1000 });
-                return { path, normals, hasTIR };
+                return { path, normals, hasTIR, flatHitInfo };
             }
 
             path.push({x: hit2.x, y: hit2.y});
             normals.push(hit2);
 
-            // Step 3: Refract Exit (n2 -> n1)
-            // Or TIR
-            let rVec2 = refract(currDir, {x: hit2.nx, y: hit2.ny}, n2, 1.0); // Exit to Air
+            if (hit2.type === 'flat') {
+                let dot = currDir.x * hit2.nx + currDir.y * hit2.ny;
+                let incAng = Math.acos(Math.min(1, Math.abs(dot)));
+                flatHitInfo = { theta_i: incAng, theta_r: 0 };
+            }
+
+            let rVec2 = refract(currDir, {x: hit2.nx, y: hit2.ny}, n2, 1.0); 
             
             if (!rVec2) {
-                // TIR happened at 2nd interface
                 hasTIR = true;
-                // Reflect
                 let refDir = reflect(currDir, {x: hit2.nx, y: hit2.ny});
                 refDir = normalize(refDir);
-                
-                // TIR Path Extension (goes back inside glass)
-                // Just draw it leaving the block geometry for visualization?
-                // Or trace to next boundary?
-                // For "Semicircle Refraction", showing the reflected ray going down is enough.
-                // It will hit the arc again. Let's just draw it long.
                 path.push({ x: hit2.x + refDir.x * 400, y: hit2.y + refDir.y * 400 });
             } else {
                 rVec2 = normalize(rVec2);
+                
+                if (hit2.type === 'flat' && flatHitInfo) {
+                    let dotR = rVec2.x * hit2.nx + rVec2.y * hit2.ny;
+                    flatHitInfo.theta_r = Math.acos(Math.min(1, Math.abs(dotR)));
+                }
+                
                 path.push({ x: hit2.x + rVec2.x * 400, y: hit2.y + rVec2.y * 400 });
             }
 
-            return { path, normals, hasTIR };
+            return { path, normals, hasTIR, flatHitInfo };
         }
 
         function calcSimulation(s) {
             const fromGlass = s.direction === 'glass_to_air';
             const theta_i = toRad(s.angle);
-            const offset = s.offset; // Perpendicular offset
-            
-            // Calculate Source Position and Direction
-            // Base Direction (aiming at center):
-            // Glass->Air (Bottom source): Up-Right if angle>0.
-            // Vector: (sin(a), -cos(a))
-            // Air->Glass (Top source): Down-Right if angle>0.
-            // Vector: (sin(a), cos(a))
-            
+            const offset = s.offset;
             const yDir = fromGlass ? -1 : 1;
-            const dir = { 
-                x: Math.sin(theta_i), 
-                y: yDir * Math.cos(theta_i) 
-            };
-            
-            // Offset Vector (Perpendicular to Dir)
-            // If Dir is (dx, dy), Perp is (-dy, dx)
+            const dir = { x: Math.sin(theta_i), y: yDir * Math.cos(theta_i) };
             const perp = { x: -dir.y, y: dir.x };
-            
-            // Source Start Point (Far away)
             const dist = 400;
-            const origin = {
-                x: -dir.x * dist + perp.x * offset,
-                y: -dir.y * dist + perp.y * offset
-            };
+            const origin = { x: -dir.x * dist + perp.x * offset, y: -dir.y * dist + perp.y * offset };
 
             const result = traceRay(origin, dir, fromGlass);
             
-            // Critical Angle Info
             let criticalAngle = null;
             if (s.n > 1.0) criticalAngle = Math.asin(1.0 / s.n);
 
@@ -606,13 +597,14 @@
                 path: result.path,
                 normals: result.normals,
                 hasTIR: result.hasTIR,
-                criticalAngle
+                criticalAngle,
+                flatData: result.flatHitInfo
             };
         }
 
         function drawArrowHead(ctx, x, y, dx, dy, color) {
             const angle = Math.atan2(dy, dx);
-            const size = 12;
+            const size = 12; // Increased size for better visibility
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle);
@@ -632,62 +624,58 @@
             ctx.globalAlpha = opacity;
             ctx.translate(cx, cy);
 
-            // Draw Block (Bottom Half)
+            // 1. Draw Semicircle Block (BOTTOM Half) - Increased Contrast
             ctx.beginPath();
             ctx.arc(0, 0, R, 0, Math.PI); 
             ctx.closePath();
+            
             if (!isGhost) {
-                ctx.fillStyle = "rgba(49, 130, 206, 0.2)";
+                // Darker fill for projector
+                ctx.fillStyle = "rgba(49, 130, 206, 0.4)"; 
                 ctx.fill();
             }
+            // Thicker outline
             ctx.strokeStyle = isGhost ? "#aaa" : "#2d3748";
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
             if (isGhost) ctx.setLineDash([5, 5]);
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Draw Path
             if (!(isPractice && !isGhost)) {
+                // Path
                 ctx.beginPath();
                 if (data.path.length > 0) {
                     const p0 = data.path[0];
-                    ctx.moveTo(p0.x, p0.y); // Path is already relative to center? No, local coords from traceRay
-                    // traceRay returns local coords relative to center (0,0) is origin
-                    // But traceRay logic used (0,0) as center of arc.
-                    // Which matches ctx.translate(cx, cy).
-                    
+                    ctx.moveTo(p0.x, p0.y); 
                     for (let i = 1; i < data.path.length; i++) {
                         ctx.lineTo(data.path[i].x, data.path[i].y);
                     }
                 }
-                
                 const pathColor = data.hasTIR ? "#e53e3e" : "#3182ce";
                 ctx.strokeStyle = isGhost ? "#e53e3e" : pathColor;
-                ctx.lineWidth = 3;
+                // Thicker rays
+                ctx.lineWidth = 5; 
                 ctx.stroke();
 
-                // Draw Arrows
+                // Arrows
                 for (let i = 0; i < data.path.length - 1; i++) {
-                    // Only draw on first (incident) and last (exit) segment
-                    // Or intermediate if offset makes it clear
                     const p1 = data.path[i];
                     const p2 = data.path[i+1];
                     const mx = (p1.x + p2.x) / 2;
                     const my = (p1.y + p2.y) / 2;
                     const dx = p2.x - p1.x;
                     const dy = p2.y - p1.y;
-                    
-                    // Filter: Don't draw if segment too short (glitch)
                     if (Math.abs(dx) + Math.abs(dy) > 10) {
                         drawArrowHead(ctx, mx, my, dx, dy, isGhost ? "#e53e3e" : pathColor);
                     }
                 }
 
-                // Draw Normals
+                // Normals
                 if (state.showNormal && !isGhost) {
-                    ctx.strokeStyle = "#718096";
+                    // Darker normals
+                    ctx.strokeStyle = "#000000"; 
                     ctx.setLineDash([4, 4]);
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = 2;
                     data.normals.forEach(n => {
                         const len = 40;
                         ctx.beginPath();
@@ -698,25 +686,22 @@
                     ctx.setLineDash([]);
                 }
             }
-
             ctx.restore();
         }
 
         function draw() {
             ctx.clearRect(0, 0, width, height);
-
             if (ghostState) {
                 const gData = calcSimulation(ghostState);
                 renderScene(gData, true);
             }
-
             const activeData = calcSimulation(state);
             renderScene(activeData, false);
 
-            // Update UI Data
-            document.getElementById('angleDisplay').innerText = state.angle;
-            document.getElementById('offsetDisplay').innerText = state.offset;
             document.getElementById('nDisplay').innerText = state.n.toFixed(2);
+            
+            if (document.activeElement.id !== 'angleInput') document.getElementById('angleInput').value = state.angle;
+            if (document.activeElement.id !== 'offsetInput') document.getElementById('offsetInput').value = state.offset;
             
             const critEl = document.getElementById('valCritical');
             const tirBadge = document.getElementById('statusTIR');
@@ -727,25 +712,46 @@
                 critEl.innerText = "無 (N/A)";
             }
             
-            if (activeData.hasTIR && !isPractice) {
-                tirBadge.style.display = 'block';
-            } else {
+            const refractionEl = document.getElementById('valRefract');
+            if (isPractice) {
+                refractionEl.innerText = "???";
                 tirBadge.style.display = 'none';
+            } else {
+                if (activeData.hasTIR) {
+                    refractionEl.innerText = "---";
+                    tirBadge.style.display = 'block';
+                } else {
+                    tirBadge.style.display = 'none';
+                    if (activeData.flatData) {
+                        refractionEl.innerText = toDeg(activeData.flatData.theta_r).toFixed(1) + "°";
+                    } else {
+                        refractionEl.innerText = "--";
+                    }
+                }
             }
         }
 
-        // Listeners
-        document.getElementById('angleSlider').addEventListener('input', (e) => {
-            state.angle = parseInt(e.target.value);
+        // --- Interaction ---
+        function updateAngle(val) {
+            state.angle = parseInt(val);
+            document.getElementById('angleSlider').value = state.angle;
+            document.getElementById('angleInput').value = state.angle;
             const hint = document.getElementById('hintBubble');
             if(hint) hint.classList.add('fade-out');
             draw();
-        });
-        
-        document.getElementById('offsetSlider').addEventListener('input', (e) => {
-            state.offset = parseInt(e.target.value);
+        }
+        function updateOffset(val) {
+            state.offset = parseInt(val);
+            document.getElementById('offsetSlider').value = state.offset;
+            document.getElementById('offsetInput').value = state.offset;
             draw();
-        });
+        }
+
+        document.getElementById('angleSlider').addEventListener('input', (e) => updateAngle(e.target.value));
+        document.getElementById('angleInput').addEventListener('input', (e) => updateAngle(e.target.value));
+        
+        document.getElementById('offsetSlider').addEventListener('input', (e) => updateOffset(e.target.value));
+        document.getElementById('offsetInput').addEventListener('input', (e) => updateOffset(e.target.value));
 
         document.getElementById('nSlider').addEventListener('input', (e) => {
             state.n = parseFloat(e.target.value);
@@ -756,7 +762,6 @@
             const isChecked = document.getElementById('toggleDirection').checked;
             state.direction = isChecked ? 'air_to_glass' : 'glass_to_air';
             document.getElementById('directionLabel').innerText = isChecked ? '空氣 → 玻璃' : '玻璃 → 空氣';
-            // Reset sliders for better UX on switch? Or keep them. Keeping allows comparison.
             if (ghostState) toggleGhost();
             draw();
         }
@@ -788,13 +793,37 @@
             draw();
         }
 
+        window.resetAngle = function() { updateAngle(0); }
+        window.resetOffset = function() { updateOffset(0); }
+
         window.setColor = function(c, el) {
             drawColor = c;
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
             el.classList.add('active');
         }
-        window.clearDrawing = function() { dCtx.clearRect(0,0,width,height); }
+        window.clearDrawing = function() { 
+            saveState(); 
+            dCtx.clearRect(0,0,width,height); 
+        }
         window.toggleLineMode = function() { isLineMode = document.getElementById('checkLineMode').checked; }
+        
+        window.toggleDraw = function() {
+            const enabled = document.getElementById('checkDraw').checked;
+            drawCanvas.style.pointerEvents = enabled ? 'auto' : 'none';
+        }
+
+        // --- Undo Logic ---
+        function saveState() {
+            if (undoStack.length >= MAX_UNDO) undoStack.shift();
+            undoStack.push(dCtx.getImageData(0, 0, width, height));
+        }
+
+        window.undoDrawing = function() {
+            if (undoStack.length > 0) {
+                const lastState = undoStack.pop();
+                dCtx.putImageData(lastState, 0, 0);
+            }
+        }
 
         function getPos(e) {
             const r = drawCanvas.getBoundingClientRect();
@@ -803,21 +832,27 @@
             const sx = width / r.width; const sy = height / r.height;
             return { x: (cx - r.left) * sx, y: (cy - r.top) * sy };
         }
+
         function startStroke(e) {
-            if (!document.getElementById('checkDraw').checked) return;
+            const enabled = document.getElementById('checkDraw').checked;
+            if (!enabled) return;
             if(e.type === 'touchstart') e.preventDefault();
+            
+            saveState(); 
             isDrawing = true; lastPos = getPos(e);
+            currentStrokeEnd = lastPos; 
             if (isLineMode) drawSnapshot = dCtx.getImageData(0, 0, width, height);
             else { dCtx.beginPath(); dCtx.moveTo(lastPos.x, lastPos.y); }
         }
+
         function moveStroke(e) {
             if (!isDrawing) return;
             if(e.type === 'touchmove') e.preventDefault();
             const p = getPos(e);
+            currentStrokeEnd = p; 
             if (isLineMode) {
                 dCtx.putImageData(drawSnapshot, 0, 0);
                 dCtx.save(); dCtx.beginPath();
-                // Ext line
                 const dx = p.x - lastPos.x; const dy = p.y - lastPos.y;
                 if (Math.abs(dx)>1 || Math.abs(dy)>1) {
                     const len = Math.sqrt(dx*dx+dy*dy);
@@ -835,7 +870,26 @@
                 dCtx.lineTo(p.x, p.y); dCtx.strokeStyle = drawColor; dCtx.stroke();
             }
         }
-        function endStroke() { isDrawing = false; }
+
+        function endStroke() {
+            if (!isDrawing) return;
+            
+            if (isLineMode && drawSnapshot && currentStrokeEnd) {
+                dCtx.putImageData(drawSnapshot, 0, 0);
+                dCtx.beginPath();
+                dCtx.moveTo(lastPos.x, lastPos.y);
+                dCtx.lineTo(currentStrokeEnd.x, currentStrokeEnd.y);
+                dCtx.lineCap = 'round';
+                dCtx.lineJoin = 'round';
+                dCtx.lineWidth = 4;
+                dCtx.strokeStyle = drawColor;
+                dCtx.setLineDash([]);
+                dCtx.stroke();
+            }
+            
+            isDrawing = false;
+            currentStrokeEnd = null;
+        }
         
         drawCanvas.addEventListener('mousedown', startStroke);
         drawCanvas.addEventListener('mousemove', moveStroke);
@@ -845,6 +899,7 @@
         window.addEventListener('touchend', endStroke);
 
         draw();
+        toggleDraw();
     </script>
 </body>
 </html>
